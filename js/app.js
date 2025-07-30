@@ -1,3 +1,4 @@
+console.log("app.js loaded");
 async function setup() {
     const patchExportURL = "export/patch.export.json";
 
@@ -134,7 +135,7 @@ function setupStartStop(device, context) {
     isPlaying = !isPlaying;
     startButton.textContent = isPlaying ? "STOP" : "PLAY";
     console.log(`Device is now ${isPlaying ? "playing" : "stopped"}`);
-    
+
     const messageEvent = new RNBO.MessageEvent(
       RNBO.TimeNow,
       "start",
