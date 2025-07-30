@@ -129,9 +129,12 @@ function setupStartStop(device, context) {
   startButton.onclick = async () => {
     if (!isPlaying && context.state !== "running") {
       await context.resume();
+      console.log("AudioContext resumed");
     }
     isPlaying = !isPlaying;
     startButton.textContent = isPlaying ? "STOP" : "PLAY";
+    console.log(`Device is now ${isPlaying ? "playing" : "stopped"}`);
+    
     const messageEvent = new RNBO.MessageEvent(
       RNBO.TimeNow,
       "start",
