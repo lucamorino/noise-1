@@ -247,14 +247,4 @@ function setupXYPad(device) {
     drawPad();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const enterButton = document.getElementById("enter-button");
-  const enterOverlay = document.getElementById("enter-overlay");
-
-  enterButton.onclick = async () => {
-    // Remove overlay
-    enterOverlay.style.display = "none";
-    // Now call setup() to initialize everything
-    await setup();
-  };
-});
+setup();
