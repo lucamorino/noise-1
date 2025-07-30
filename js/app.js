@@ -75,7 +75,7 @@ async function setup() {
     console.log("Inports:")
     console.log(inports);
 
-    setupStartStop(device);
+    setupStartStop(device, context);
     setupXYPad(device);
 
     document.body.onclick = () => {
@@ -137,11 +137,14 @@ function sendMessageToInport(device, inportTag, values) {
 }
 // START AND STOP BUTTON
 // This function sets up the start/stop button to toggle playback of the device
-function setupStartStop(device) {
+function setupStartStop(device, context) {
   const startButton = document.getElementById("start-button");
   let isPlaying = false;
 
-  startButton.onclick = () => {
+  startButton.onclick = async () => {
+    if (!isPlaying && context.state !== "running") {
+      await context.resume();
+    }
     isPlaying = !isPlaying;
     startButton.textContent = isPlaying ? "STOP" : "PLAY";
     const messageEvent = new RNBO.MessageEvent(
