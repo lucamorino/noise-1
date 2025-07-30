@@ -132,6 +132,10 @@ function setupStartStop(device, context) {
       await context.resume();
       console.log("AudioContext resumed");
     }
+    if (isPlaying && context.state === "running") {
+      await context.suspend();
+      console.log("AudioContext suspended");
+    }
     isPlaying = !isPlaying;
     startButton.textContent = isPlaying ? "STOP" : "PLAY";
     console.log(`Device is now ${isPlaying ? "playing" : "stopped"}`);
