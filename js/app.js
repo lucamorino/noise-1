@@ -40,16 +40,6 @@ async function setup() {
         }
         return;
     }
-    
-    // (Optional) Fetch the dependencies
-/*     let dependencies = [];
-    try {
-        const dependenciesResponse = await fetch("export/dependencies.json");
-        dependencies = await dependenciesResponse.json();
-
-        // Prepend "export" to any file dependenciies
-        dependencies = dependencies.map(d => d.file ? Object.assign({}, d, { file: "export/" + d.file }) : d);
-    } catch (e) {} */
 
     // Create the device
     let device;
@@ -63,11 +53,6 @@ async function setup() {
         }
         return;
     }
-
-    // (Optional) Load the samples
-/*     if (dependencies.length)
-        await device.loadDataBufferDependencies(dependencies); */
-
     // Connect the device to the web audio graph
     device.node.connect(outputNode);
 
@@ -78,9 +63,9 @@ async function setup() {
     setupStartStop(device, context);
     setupXYPad(device);
 
-    document.body.onclick = () => {
+    /* document.body.onclick = () => {
         context.resume();
-    }
+    } */
 
     // Skip if you're not using guardrails.js
     if (typeof guardrails === "function")
@@ -165,8 +150,8 @@ function setupXYPad(device) {
     const ctx = canvas.getContext('2d');
     const padSize = canvas.width;
     const dotRadius = 12;
-    let dotX = padSize / 2;
-    let dotY = padSize / 2;
+    let dotX = padSize / 2 + Math.random() * 200 - 100; // randomize initial position slightly
+    let dotY = padSize / 2 + Math.random() * 200 - 100; // randomize initial position slightly
     let dragging = false;
 
     function drawPad() {
@@ -234,10 +219,15 @@ function setupXYPad(device) {
             dotX = x;
             dotY = y;
             drawPad();
+
+            // Send the touch coordinates to the RNBO device
+            let touchX = Math.round(dotX / 3 + 86); // rescale to 90 to 182 and round
+            let touchY = Math.round(dotY / 3 + 86); // rescale to 90 to 182 and round
+            console.log(`Touch at: ${touchX}, ${touchY}`);
             const messageEvent = new RNBO.MessageEvent(
                 RNBO.TimeNow,
                 "touch",
-                [dotX, dotY]
+                [touchX, touchY]
             );
             device.scheduleEvent(messageEvent);
         }
