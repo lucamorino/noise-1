@@ -3,10 +3,6 @@
 async function setup() {
     const patchExportURL = "export/patch.export.json";
 
-    // Create AudioContext
-    const WAContext = window.AudioContext || window.webkitAudioContext;
-    const context = new WAContext();
-
     // Create gain node and connect it to audio output
     const outputNode = context.createGain();
     outputNode.connect(context.destination);

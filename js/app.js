@@ -1,16 +1,12 @@
 //console.log("app.js loaded");
 
-async function setup() {
+async function setup(context) {
     const patchExportURL = "export/patch.export.json";
-
-    // Create AudioContext
-    const WAContext = window.AudioContext || window.webkitAudioContext;
-    const context = new WAContext();
 
     // Create gain node and connect it to audio output
     const outputNode = context.createGain();
     outputNode.connect(context.destination);
-    
+
     // Fetch the exported patcher
     let response, patcher;
     try {
@@ -98,18 +94,15 @@ function getInports(device) {
   );
   return inports;
 }
-
 function getParameters(device) {
   const parameters = device.parameters;
   return parameters;
 }
-
 function getParameter(device, parameterName) {
   const parameters = device.parameters;
   const parameter = parameters.find((param) => param.name === parameterName);
   return parameter;
 }
-
 function sendMessageToInport(device, inportTag, values) {
   // Turn the text into a list of numbers (RNBO messages must be numbers, not text)
   const messsageValues = values.split(/\s+/).map((s) => parseFloat(s));
@@ -122,21 +115,24 @@ function sendMessageToInport(device, inportTag, values) {
   );
   device.scheduleEvent(messageEvent);
 }
+
+
 // START AND STOP BUTTON
 // This function sets up the start/stop button to toggle playback of the device
-function setupStartStop(device, context) {
+
+function setupStartStop(device) {  //(device, context) {
   const startButton = document.getElementById("start-button");
   let isPlaying = false;
 
   startButton.onclick = async () => {
-    if (!isPlaying && context.state !== "running") {
+    /* if (!isPlaying && context.state !== "running") {
       await context.resume();
       console.log("AudioContext resumed");
     }
     if (isPlaying && context.state === "running") {
       await context.suspend();
       console.log("AudioContext suspended");
-    }
+    } */
     isPlaying = !isPlaying;
     startButton.textContent = isPlaying ? "STOP" : "PLAY";
     console.log(`Device is now ${isPlaying ? "playing" : "stopped"}`);
@@ -254,7 +250,15 @@ document.addEventListener("DOMContentLoaded", () => {
   enterButton.onclick = async () => {
     // Remove overlay
     enterOverlay.style.display = "none";
-    // Now call setup() to initialize everything
-    await setup();
+
+    // Create and resume AudioContext in direct response to user gesture
+    const WAContext = window.AudioContext || window.webkitAudioContext;
+    const context = new WAContext();
+    console.log("AudioContext created:", context);
+    await context.resume();
+    console.log("AudioContext resumed");
+
+    // Call setup and pass context
+    await setup(context);
   };
 });
