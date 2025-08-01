@@ -58,7 +58,7 @@ async function setup(context) {
     console.log("Inports:")
     console.log(inports);
 
-    setupStartStop(device, context);
+    //setupStartStop(device, context);
     setupXYPad(device);
 
     /* document.body.onclick = () => {
@@ -120,19 +120,19 @@ function sendMessageToInport(device, inportTag, values) {
 // START AND STOP BUTTON
 // This function sets up the start/stop button to toggle playback of the device
 
-function setupStartStop(device) {  //(device, context) {
+/* function setupStartStop(device) {  //(device, context) {
   const startButton = document.getElementById("start-button");
   let isPlaying = false;
 
   startButton.onclick = async () => {
-    /* if (!isPlaying && context.state !== "running") {
+    if (!isPlaying && context.state !== "running") {
       await context.resume();
       console.log("AudioContext resumed");
     }
     if (isPlaying && context.state === "running") {
       await context.suspend();
       console.log("AudioContext suspended");
-    } */
+    } 
     isPlaying = !isPlaying;
     startButton.textContent = isPlaying ? "STOP" : "PLAY";
     console.log(`Device is now ${isPlaying ? "playing" : "stopped"}`);
@@ -144,19 +144,19 @@ function setupStartStop(device) {  //(device, context) {
     );
     device.scheduleEvent(messageEvent);
   };
-}
+} */
+
 
 // XY PAD
 // This code creates a simple XY pad using a canvas element
-
 
 function setupXYPad(device) {
     const canvas = document.getElementById('xy-pad');
     const ctx = canvas.getContext('2d');
     const padSize = canvas.width;
     const dotRadius = 12;
-    let dotX = padSize / 2 + Math.random() * 200 - 100; // randomize initial position slightly
-    let dotY = padSize / 2 + Math.random() * 200 - 100; // randomize initial position slightly
+    let dotX = padSize / 2 + Math.random() * 200 - 100;
+    let dotY = padSize / 2 + Math.random() * 200 - 100;
     let dragging = false;
 
     function drawPad() {
@@ -185,22 +185,37 @@ function setupXYPad(device) {
     }
 
     canvas.addEventListener('mousedown', (e) => {
+        dragging = true;
         let { x, y } = getXY(e);
-        if (Math.hypot(dotX - x, dotY - y) < dotRadius + 2) {
-            dragging = true;
-        }
+        dotX = x;
+        dotY = y;
+        drawPad();
+        // Send start=1
+        const startEvent = new RNBO.MessageEvent(
+            RNBO.TimeNow,
+            "start",
+            [1]
+        );
+        device.scheduleEvent(startEvent);
+        // Send touch coordinates
+        let touchX = Math.round(dotX / 3 + 86);
+        let touchY = Math.round(dotY / 3 + 86);
+        const messageEvent = new RNBO.MessageEvent(
+            RNBO.TimeNow,
+            "touch",
+            [touchX, touchY]
+        );
+        device.scheduleEvent(messageEvent);
     });
+
     canvas.addEventListener('mousemove', (e) => {
         if (dragging) {
             let { x, y } = getXY(e);
             dotX = x;
             dotY = y;
             drawPad();
-            
-            // Send the touch coordinates to the RNBO device
-            let touchX = Math.round(dotX / 3 + 86); // rescale to 90 to 182 and round
-            let touchY = Math.round(dotY / 3 + 86); // rescale to 90 to 182 and round
-            console.log(`Touch at: ${touchX}, ${touchY}`);
+            let touchX = Math.round(dotX / 3 + 86);
+            let touchY = Math.round(dotY / 3 + 86);
             const messageEvent = new RNBO.MessageEvent(
                 RNBO.TimeNow,
                 "touch",
@@ -209,26 +224,62 @@ function setupXYPad(device) {
             device.scheduleEvent(messageEvent);
         }
     });
-    canvas.addEventListener('mouseup', () => dragging = false);
-    canvas.addEventListener('mouseleave', () => dragging = false);
+
+    canvas.addEventListener('mouseup', () => {
+        dragging = false;
+        // Send start=0
+        const stopEvent = new RNBO.MessageEvent(
+            RNBO.TimeNow,
+            "start",
+            [0]
+        );
+        device.scheduleEvent(stopEvent);
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        dragging = false;
+        // Send start=0
+        const stopEvent = new RNBO.MessageEvent(
+            RNBO.TimeNow,
+            "start",
+            [0]
+        );
+        device.scheduleEvent(stopEvent);
+    });
 
     canvas.addEventListener('touchstart', (e) => {
+        dragging = true;
         let { x, y } = getXY(e);
-        if (Math.hypot(dotX - x, dotY - y) < dotRadius + 2) {
-            dragging = true;
-        }
-    });
+        dotX = x;
+        dotY = y;
+        drawPad();
+        // Send start=1
+        const startEvent = new RNBO.MessageEvent(
+            RNBO.TimeNow,
+            "start",
+            [1]
+        );
+        device.scheduleEvent(startEvent);
+        // Send touch coordinates
+        let touchX = Math.round(dotX / 3 + 86);
+        let touchY = Math.round(dotY / 3 + 86);
+        const messageEvent = new RNBO.MessageEvent(
+            RNBO.TimeNow,
+            "touch",
+            [touchX, touchY]
+        );
+        device.scheduleEvent(messageEvent);
+        e.preventDefault();
+    }, { passive: false });
+
     canvas.addEventListener('touchmove', (e) => {
         if (dragging) {
             let { x, y } = getXY(e);
             dotX = x;
             dotY = y;
             drawPad();
-
-            // Send the touch coordinates to the RNBO device
-            let touchX = Math.round(dotX / 3 + 86); // rescale to 90 to 182 and round
-            let touchY = Math.round(dotY / 3 + 86); // rescale to 90 to 182 and round
-            console.log(`Touch at: ${touchX}, ${touchY}`);
+            let touchX = Math.round(dotX / 3 + 86);
+            let touchY = Math.round(dotY / 3 + 86);
             const messageEvent = new RNBO.MessageEvent(
                 RNBO.TimeNow,
                 "touch",
@@ -238,7 +289,17 @@ function setupXYPad(device) {
         }
         e.preventDefault();
     }, { passive: false });
-    canvas.addEventListener('touchend', () => dragging = false);
+
+    canvas.addEventListener('touchend', () => {
+        dragging = false;
+        // Send start=0
+        const stopEvent = new RNBO.MessageEvent(
+            RNBO.TimeNow,
+            "start",
+            [0]
+        );
+        device.scheduleEvent(stopEvent);
+    });
 
     drawPad();
 }
